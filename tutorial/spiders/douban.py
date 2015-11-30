@@ -13,7 +13,7 @@ class DoubanSpider(scrapy.Spider):
     page_url = 'http://movie.douban.com/top250'
     def parse(self, response):
         item = DoubanItem()
-        print '======================'
+        #print '======================'
         content = response.xpath('//div[@class="info"]')
         for info in content:
             hd = info.xpath('div[@class="hd"]/a/span/text()').extract()
@@ -23,12 +23,12 @@ class DoubanSpider(scrapy.Spider):
             #item['star'] = bd.xpath('div[@class="star"]/span[@class="rating_num"]/text()').extract()
             item['star'] = bd.xpath('div/span/text()').extract()[0]
             item['assess'] = re.findall('(\d+)', bd.xpath('div/span/text()').extract()[1], re.S)
-            print '=========='+str(item)+'============'
+            #print '=========='+str(item)+'============'
             yield item #一定要有
             
         nextLink = response.xpath('//span[@class="next"]/a/@href').extract()
         if nextLink:
-           nextLink = nextLink[0]
-           print nextLink
-           yield Request(self.page_url+ nextLink,callback=self.parse) 
+            nextLink = nextLink[0]
+            print nextLink
+            yield Request(self.page_url+ nextLink,callback=self.parse) 
         
