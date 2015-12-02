@@ -9,6 +9,7 @@ class StockqqSpider(scrapy.Spider):
     start_urls = (
         'http://stock.qq.com/l/stock/list20150525114649.htm',
     )
+    count = 0
     #先获取所有的分页
     #获取每一个分页列表中的文章url
     #解析文章数据
@@ -19,8 +20,10 @@ class StockqqSpider(scrapy.Spider):
         if nextLink:
             if len(nextLink)>3:
                 nextLink = nextLink[1]
-            elif  len(nextLink)>=0:
-                nextLink = nextLink[0]
+            elif  len(nextLink)>=2:
+                if self.count <2:
+                    self.count +=1
+                    nextLink = nextLink[0]
             r =  Request(nextLink,callback=self.parse_list,dont_filter=True)#dont_filter=True表示不过滤相同url
             print '***********************'+nextLink
             n = Request(nextLink,callback=self.parse,dont_filter=True)
