@@ -15,3 +15,4 @@ class StockQQItem(scrapy.Item):
     articleTime = scrapy.Field()
     tag = scrapy.Field()
     link = scrapy.Field()
+    pageLink = scrapy.Field()

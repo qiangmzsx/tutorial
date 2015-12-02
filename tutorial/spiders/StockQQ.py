@@ -21,9 +21,9 @@ class StockqqSpider(scrapy.Spider):
                 nextLink = nextLink[1]
             elif  len(nextLink)>=0:
                 nextLink = nextLink[0]
-            r =  Request(nextLink,callback=self.parse_list)
+            r =  Request(nextLink,callback=self.parse_list,dont_filter=True)#dont_filter=True表示不过滤相同url
             print '***********************'+nextLink
-            n = Request(nextLink,callback=self.parse)
+            n = Request(nextLink,callback=self.parse,dont_filter=True)
             req.append(n)
             req.append(r)
             print '####################'
@@ -35,6 +35,8 @@ class StockqqSpider(scrapy.Spider):
     def parse_list(self,response):
         print "=============="
         req = []
+        item = StockQQItem()
+        item['pageLink'] = response.url
         listTitles = response.xpath('//div[@class="mod newslist"]/ul') 
         for titleul in listTitles:
             listLis = titleul.xpath('li')
@@ -43,17 +45,24 @@ class StockqqSpider(scrapy.Spider):
                 titleLink = li.xpath('a/@href').extract()
                 print str(titleLink)
                 r= Request(titleLink[0], callback=self.parse_content)
+                r.meta['item'] = item
                 req.append(r)
                 
         return req
     
     def parse_content(self,response):
         print "+++++++++++++++++"
-        item = StockQQItem()
+        item = response.meta['item']
         comtentDiv = response.xpath('//*[@id="C-Main-Article-QQ"]')
         item['title'] = comtentDiv.xpath('div[@class="hd"]/h1/text()').extract()
         item['tag'] = comtentDiv.xpath('div/div[@bosszone="titleDown"]/div[@class="l1"]/span[@bosszone="ztTopic"]/a/text()').extract()[0]
-        item['source'] = comtentDiv.xpath('div/div[@bosszone="titleDown"]/div[@class="l1"]/span[@bosszone="jgname"]/text()').extract()[0]
+        
+        source = comtentDiv.xpath('div/div[@bosszone="titleDown"]/div[@class="l1"]/span[@bosszone="jgname"]/text()').extract()
+        if len(source)>0:
+            item['source'] =source[0]
+        else : 
+            item['source'] = comtentDiv.xpath('div/div[@bosszone="titleDown"]/div[@class="l1"]/span[@bosszone="jgname"]/a/text()').extract()
+        
         item['articleTime'] = comtentDiv.xpath('div/div[@bosszone="titleDown"]/div[@class="l1"]/span[@class="pubTime article-time"]/text()').extract()[0]
         comtents = response.xpath('//*[@id="Cnt-Main-Article-QQ"]/p/text()').extract()
         strComtent = ''
@@ -61,7 +70,7 @@ class StockqqSpider(scrapy.Spider):
             strComtent += comtent
         
         item['comtent'] = strComtent
-        
+        item['link'] = response.url
         return item 
 
         
